@@ -1,10 +1,24 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
 
 # C extensions
 *.so
+
+# vim swap files
+*.sw?
+
+# emacs
+flycheck_*.el
+.projectile
+
+# Images
+*.jpg
+*.gif
+*.png
+!logo/logo.png
+*.svg
+*.ico
 
 # Distribution / packaging
 .Python
@@ -20,10 +34,11 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
+temp/
 *.egg-info/
 .installed.cfg
 *.egg
+*.p
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -43,8 +58,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*.cover
-.hypothesis/
+*,cover
 
 # Translations
 *.mo
@@ -52,14 +66,6 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -67,35 +73,6 @@ docs/_build/
 # PyBuilder
 target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
-
-# dotenv
-.env
-
-# virtualenv
-.venv
-venv/
-ENV/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
+# Google Drive
+*desktop.inibuild/
+dist/
