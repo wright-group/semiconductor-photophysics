@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+
+
 # --- import -------------------------------------------------------------------------------------
 
 
@@ -12,12 +15,14 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 
 
-# --- setup --------------------------------------------------------------------------------------
-
-
 extra_files = []
+extra_files.append(os.path.join(here, 'CONTRIBUTORS'))
 extra_files.append(os.path.join(here, 'LICENSE'))
+extra_files.append(os.path.join(here, 'README.md'))
 extra_files.append(os.path.join(here, 'VERSION'))
+
+
+# --- setup --------------------------------------------------------------------------------------
 
 
 with open(os.path.join(here, 'requirements.txt')) as f:
@@ -34,5 +39,17 @@ setup(
     packages=find_packages(),
     package_data={'': extra_files},
     install_requires=required,
-    license='MIT'
+    author='Darien Morrow',
+    author_email='darienmorrow@gmail.com',
+    license='MIT',
+    url='https://github.com/wright-group/semiconductor_photophysics',
+    keywords='semiconductor photophysics spectroscopy science',
+    classifiers=['Development Status :: 0 - Planning',
+                 'Intended Audience :: Science/Research',
+                 'Topic :: Scientific/Engineering',
+                 'Natural Language :: English',
+                 'Programming Language :: Python :: 3',
+                 'Programming Language :: Python :: 3.3',
+                 'Programming Language :: Python :: 3.4',
+                 'Programming Language :: Python :: 3.5']
 )
