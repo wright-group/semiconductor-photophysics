@@ -65,10 +65,17 @@ def _M_generator(pol, n_i, n_f, th_i, th_f, deltan):
     # eq 11 in byrnes notes
     rnn1 =  _r_calc(pol, n_i, n_f, th_i, th_f)
     tnn1 =  _t_calc(pol, n_i, n_f, th_i, th_f)
-    M1 = np.array([[np.exp(-1j*deltan),0],[0,np.exp(-1j*deltan)]], dtype=complex)
-    M2 = np.array([[1,rnn1],[rnn1,1]], dtype=complex)
+
+    M1 = np.zeros(deltan.shape + (2,2), dtype=complex)
+    M1[...,0,0] = np.exp(-1j*deltan) # TODO ensure matrix construction is as intended 
+    M1[...,1,1] = np.exp(1j*deltan) # TODO ensure matrix construction is as intended 
+    
+    M2 = np.ones(deltan.shape + (2,2), dtype=complex)
+    M2[...,0,1] = rnn1 # TODO ensure matrix construction is as intended 
+    M2[...,1,0] = rnn1 # TODO ensure matrix construction is as intended 
+
     out = M1 @ M2
-    out /= tnn1
+    out /= tnn1[..., None, None]
     return out
 
 def _M_bootstrap(pol, n, th, deltan):
@@ -86,7 +93,7 @@ def _snells_law_calc(n_1, n_2, th_1):
     return th_2_guess
 
 def _snells_bootstrap(ns, th_0):
-    theta_out = np.zeros(ns.shape)
+    theta_out = np.zeros(ns.shape, dtype=complex)
     theta_out[0] = th_0
     for i in range(1, ns.shape[0]):
         theta_old = theta_out[i-1]
@@ -152,4 +159,29 @@ def stack_calculation(pol, n_arr, d_arr, th_0, hw_vac):
     T = _T_from_t(pol, t, n_arr[0], n_arr[-1], th_arr[0], th_arr[-1])
     A = 1 - R - T
     return R, T, A
+ 
+    
+
+# TODO remove
+if False:
+    import matplotlib.pyplot as plt
+    w = np.linspace(1,3, 301)[:,None] * np.ones((301,201))
+    w1 = np.linspace(1,3,201)[None,:] * np.ones((301,201))
+    zero = np.ones(w.shape)
+    first = 1.5 + .01 / (w-2-1j*.05)
+    first2 = 1.5 + .01 / (w-2-1j*.05) * w1
+    second = np.ones(w.shape)
+    
+    # x, 31, 21
+    
+    arrs = (zero, first, first2, second)
+    narr = np.stack(arrs)
+    d_arr = np.array([0, 100, 100, 0])[:,None, None]
+    R, T, A = stack_calculation('s', narr, d_arr, 0.5, w)
+    
+    #plt.plot(w, R)
+    #plt.plot(w, T)
+    #plt.plot(w, A)
+    
+    
     
