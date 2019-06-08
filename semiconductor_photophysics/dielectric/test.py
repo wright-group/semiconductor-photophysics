@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 m_star = 0.104 # 10.1038/NPHYS3357
 ER = .02#.003 # 10.1038/NPHYS3357 reports at value at RT as "a few meV"
-epsilonr = 10#25.7 # 10.1103/PhysRevB.89.155204 theory paper. 0 frequency dielectric. Other papers say mid frequency dielectric should be used instead
+epsilonr = 5#25.7 # 10.1103/PhysRevB.89.155204 theory paper. 0 frequency dielectric. Other papers say mid frequency dielectric should be used instead
 Eg0 = 1.6
 a0 = BK.a0_exciton(epsilonr, m_star)
 
@@ -18,26 +18,26 @@ a0 = BK.a0_exciton(epsilonr, m_star)
 
 
 
-w = np.linspace(1.,3,1001)
+w = np.linspace(1.3,2,1001)
 G = np.array([.01])
 T = 300
 rcv = 1.
-mu_e = .7
-mu_h = .7
-xmax = 1000
+mu_e = .5
+mu_h = .5
+xmax = 2000
 xnum = 10000
-nmax = 1000
+nmax = 10000
 
-n_nm = BK.n_cm3_to_nm3(1e17)
+n_nm = BK.n_cm3_to_nm3(1e15)
 k = BK.k_debye_huckel(n_nm, epsilonr, T)
-k = 1/100.
+#k = 1/100.
 g = BK.g_from_ak(a0, k)
 
 a0 = np.array([a0])
 k = np.array([k])
 
 if True:
-    out = BK.dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, xnum, nmax)
+    out = BK.dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, xnum, nmax) + 10
     plt.plot(w, out.imag)
     plt.plot(w, out.real)
     plt.plot(w, np.abs(out))
