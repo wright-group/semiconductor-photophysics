@@ -10,7 +10,11 @@ import numpy as np
 import scipy as sp
 import WrightTools as wt
 
+def e_to_n(e):
+    return np.sqrt(e)
 
+def n_to_e(n):
+    return n**2
 
 def _R_from_r(r):
     """
@@ -126,7 +130,7 @@ def stack_calculation(pol, n_arr, d_arr, th_0, hw_vac):
     th_0 : float
         angle of forward traveling light from 0th to 1st layer
     hw_vac : array
-        energy per photon of light in vacuum
+        energy per photon of light in vacuum (units of eV)
         must be of shape (1, y, ...)
         
     Returns
