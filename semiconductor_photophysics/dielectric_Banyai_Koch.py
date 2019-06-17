@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import ini_parsing
 
 # --- helper methods to convert from unit-ed system to unitless system ----------------------------
 
@@ -76,7 +76,7 @@ def ER_exciton(a0_exc, m_star):
 
 
 def m_star_calc(me_star, mh_star):
-    me_star * mh_star / (me_star + mh_star)
+    return me_star * mh_star / (me_star + mh_star)
 
 
 def n0_nm(T, m_alpha_star):
@@ -101,11 +101,11 @@ def mu_from_n(n, m_alpha_star, T):
 # --- methods for calculating dielectric spectrum according to Banyai and Koch --------------------
 
 
-def L(E, E0, G):
+def L(E, E0, G, A=1., A0=0.):
     """
     Complex Lorentzian. Area normalized to imaginary component.
     """
-    return 1 / np.pi / (E0 - E - 1j * G)
+    return A / np.pi / (E0 - E - 1j * G) + A0
 
 
 def _checkndim_copy_reshape(arrs, added_dims):
@@ -134,11 +134,11 @@ def bound_contribution(w, g, G, nmax, squeeze=True):
     # helper methods
     def f1(g):
         return np.sqrt(g).astype(int)
-
+    #* L(w + (1 / ell - ell / g) ** 2, 0, G)
     def f2(w, g, G, ell):
         return (
             np.pi
-            * L(w + (1 / ell - ell / g) ** 2, 0, G)
+            * L(w + (1 / ell - ell / g) ** 2, 0,G)
             * 2
             * (g - ell ** 2)
             * (2 * ell ** 2 - g)
@@ -208,7 +208,7 @@ def continuum_contribution(w, g, G, xmax, xnum, nmax, squeeze=True):
     )
     coul_enhnc = np.prod(coul_enhnc, axis=-1, keepdims=True)
     # create array to integrate
-    arr = np.sqrt(x) * coul_enhnc * L(x - w, 0, G)
+    arr = np.sqrt(x) * coul_enhnc * L(w-x, 0, G) # different than BK, but they are working with delta functions we care about the sign
     out = np.trapz(arr, dx=dx, axis=-2)
     if squeeze:
         out = np.squeeze(out)
@@ -227,12 +227,16 @@ def reduced_dielectric(wbar, g, Gbar, Tbar, mubar_e, mubar_h, xmax, xnum, nmax):
     #print(bound.imag.max(), continuum.imag.max())
     return out
 
-def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, xnum, nmax):    
+def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, xnum, nmax, print_g=False, return_bff=False):    
     # TODO docstring
     """
     """
     g = g_from_ak(a0, k)
+    if print_g:
+        print("g min and max", g.min(), g.max())
     ER = ER_exciton(a0, m_star)
+    if g.min() < 1:
+        raise Exception("currently g less than 1 is not implemented---this is a Mott transition")
     Eg = Eg_from_g(Eg0, ER, g, bound=True)
     Gbar = G_to_Gbar(G, ER)
     Tbar = T_to_Tbar(T, ER)
@@ -241,13 +245,24 @@ def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, x
     mubar_e = mubar(mu_e, Eg, T)
     mubar_h = mubar(mu_h, Eg, T)
     out = pre * reduced_dielectric(wbar, g, Gbar, Tbar, mubar_e, mubar_h, xmax, xnum, nmax)
-    return out
+    bf = band_filling_factor(wbar, Tbar, mubar_e, mubar_h)
+    if return_bff:
+        return out, bf
+    else:
+        return out
 
-
-
-    
-    
-    
+def dielectric_microscopic_from_ini(w, p, out_shape=None):
+    params = ini_parsing.read_full_sim_params(p)
+    num_params = params['num_params']
+    if out_shape == None:
+        out = np.zeros(w.shape, dtype=complex)
+    else:
+        out = np.zeros(out_shape, dtype=complex)
+    for BK in params['BKs']:
+        out += dielectric_microscopic(w, *BK, *num_params, return_bff=False)
+    for lor in params['Lors']:
+        out += L(w, *lor)
+    return out  
 
 def dielectric_macroscopic():
     # TODO docstring
