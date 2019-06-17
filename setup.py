@@ -19,7 +19,7 @@ extra_files = []
 extra_files.append(os.path.join(here, 'CONTRIBUTORS'))
 extra_files.append(os.path.join(here, 'LICENSE'))
 extra_files.append(os.path.join(here, 'README.md'))
-extra_files.append(os.path.join(here, 'VERSION'))
+extra_files.append(os.path.join(here, 'semiconductor_photophysics', 'VERSION'))
 
 
 # --- setup --------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ with open(os.path.join(here, 'requirements.txt')) as f:
     required = f.read().splitlines()
 
 
-with open(os.path.join(here, 'VERSION')) as version_file:
+with open(os.path.join(here, 'semiconductor_photophysics', 'VERSION')) as version_file:
     version = version_file.read().strip()
 
 

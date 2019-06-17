@@ -1,5 +1,6 @@
 import numpy as np
-import ini_parsing
+
+from semiconductor_photophysics import ini_parsing
 
 # --- helper methods to convert from unit-ed system to unitless system ----------------------------
 
