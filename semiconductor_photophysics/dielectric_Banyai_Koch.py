@@ -57,7 +57,13 @@ def k_debye_huckel(n, epsilonr, T):
     hc = 1240.  # ev nm
     beta = 1 / (kb * T)  # 1/eV
     alpha = 1 / 137.036
-    return np.sqrt(2 * n * beta * alpha * hc / epsilonr)
+    return np.sqrt(4/2 * n * beta * alpha * hc / epsilonr)
+
+def k_thomas_fermi(n, epsilonr, EF):
+    # n has units of 1/nm^3
+    hc = 1240.  # ev nm
+    alpha = 1 / 137.036
+    return np.sqrt(6/2 * n * alpha * hc / (EF * epsilonr))
 
 
 def a0_exciton(epsilonr, m_star):
@@ -225,7 +231,6 @@ def reduced_dielectric(wbar, g, Gbar, Tbar, mubar_e, mubar_h, xmax, xnum, nmax):
     bound = bound_contribution(wbar, g, Gbar, nmax, squeeze=True)
     continuum = continuum_contribution(wbar, g, Gbar, xmax, xnum, nmax, squeeze=True)
     out =  bf * (bound + continuum)
-    #print(bound.imag.max(), continuum.imag.max())
     return out
 
 def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, xnum, nmax, print_g=False, return_bff=False):    

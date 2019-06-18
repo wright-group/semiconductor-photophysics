@@ -164,28 +164,15 @@ def stack_calculation(pol, n_arr, d_arr, th_0, hw_vac):
     A = 1 - R - T
     return R, T, A
  
-    
 
-# TODO remove
-if False:
-    import matplotlib.pyplot as plt
-    w = np.linspace(1,3, 301)[:,None] * np.ones((301,201))
-    w1 = np.linspace(1,3,201)[None,:] * np.ones((301,201))
-    zero = np.ones(w.shape)
-    first = 1.5 + .01 / (w-2-1j*.05)
-    first2 = 1.5 + .01 / (w-2-1j*.05) * w1
-    second = np.ones(w.shape)
-    
-    # x, 31, 21
-    
-    arrs = (zero, first, first2, second)
+def easy_stack(w, epsilon_samp, n_sub1, n_sub2, samp_thickness_nm):   
+    # assumes w and epsilon_samp are 1D
+    n_samp = e_to_n(epsilon_samp)
+    zero = n_sub1*np.ones(w.shape)
+    second = n_sub2*np.ones(w.shape)
+    arrs = (zero, n_samp, second)
     narr = np.stack(arrs)
-    d_arr = np.array([0, 100, 100, 0])[:,None, None]
-    R, T, A = stack_calculation('s', narr, d_arr, 0.5, w)
-    
-    #plt.plot(w, R)
-    #plt.plot(w, T)
-    #plt.plot(w, A)
-    
-    
+    d_arr = np.array([0, samp_thickness_nm, 0])[:,None]
+    R, T, A = stack_calculation('s', narr, d_arr, 0.0, w[None,:])
+    return R, T, A
     

@@ -1,4 +1,5 @@
 import WrightTools as wt
+import numpy as np
 
 def get_BK_numerical_params(ini, section_name='numerical_params'):
     xmax = ini.read(section_name, 'xmax')
@@ -25,7 +26,9 @@ def get_BK(ini, section):
     mu_e   = ini.read(section, 'mu_e')
     mu_h   = ini.read(section, 'mu_h')
     m_star = ini.read(section, 'm_star')
-    return (Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star)
+    out_old = [Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star]
+    out_new = [np.array([i]) for i in out_old]
+    return out_new
     
 def get_Lors(ini):
     out = []
@@ -41,7 +44,9 @@ def get_lor(ini, section):
     G  = ini.read(section, 'G')
     A  = ini.read(section, 'A')
     A0 = ini.read(section, 'A0')
-    return (E0, G, A, A0)
+    out_old = [E0, G, A, A0]
+    out_new = [np.array([i]) for i in out_old]
+    return out_new   
 
 def read_full_sim_params(p):
     ini = wt.kit.INI(p)

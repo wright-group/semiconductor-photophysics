@@ -1,6 +1,6 @@
 from .__version__ import *
-import optics
-import dielectric_Banyai_Koch
-import kit
-import ini_parsing
+from . import optics
+from . import dielectric_Banyai_Koch
+from . import kit
+from . import ini_parsing
 
