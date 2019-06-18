@@ -175,4 +175,18 @@ def easy_stack(w, epsilon_samp, n_sub1, n_sub2, samp_thickness_nm):
     d_arr = np.array([0, samp_thickness_nm, 0])[:,None]
     R, T, A = stack_calculation('s', narr, d_arr, 0.0, w[None,:])
     return R, T, A
+
+def transient_calc(tup1, tup2):
+    """
+    tup1 and tup2 should be tuples of broadcastable form (R, T, A)
+    tup1 is ground and tup2 is excited state spectra
+    returns dR/R, dT/T, and dA spectra.
+    """
+    dRR = (tup2[0] - tup1[0]) / tup1[0]
+    dTT = (tup2[1] - tup1[1]) / tup1[1]
+    dA  = tup2[2] - tup1[2]
+    return dRR, dTT, dA
+    
+    
+    
     

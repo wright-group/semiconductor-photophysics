@@ -8,6 +8,7 @@ kb = 8.6173e-5  # ev/K
 kb_J = 1.381e-23  # J/K
 hbar_Js = 1.055e-34  # Js
 m_e = 9.1094e-31  # kg
+J_to_eV =  6.242e18
 
 
 def n_cm3_to_nm3(n_cm):
@@ -51,6 +52,22 @@ def Eg_from_g(Eg0, ER, g, bound=True):
         out = Eg0 - ER / g
     return out
 
+def dEg_from_ak(a0, k, mstar, bound=True):
+    # a0 is in units of nm
+    # k is in units of inverse nm
+    # mstar is in units of electron mass and is the exciton reduced mass
+    # returns the change in the bandgap in eV
+    g = g_from_ak(a0, k)
+    a0_m = a0 * 1e-9
+    prefactor = hbar_Js**2 / (2*mstar*m_e)
+    prefactor /= a0_m**2 # now in units of J
+    prefactor *= J_to_eV    
+    if bound:
+        out = prefactor * (-1 + (1 - 1 / g) ** 2)
+    else:
+        out = prefactor * -1 / g
+    return out
+
 
 def k_debye_huckel(n, epsilonr, T):
     # n has units of 1/nm^3
@@ -79,7 +96,7 @@ def ER_exciton(a0_exc, m_star):
     m = m_star * m_e  # kg
     a0 = a0_exc * 1e-9  # nm to m
     out = hbar_Js ** 2 / (2 * m * a0 ** 2)  # J
-    return out * 6.242e18  # eV
+    return out * J_to_eV  # eV
 
 
 def m_star_calc(me_star, mh_star):
@@ -103,6 +120,16 @@ def mu_from_n(n, m_alpha_star, T):
     K3 = 0.133
     mu = kb * T * (np.log(nu) + K1 * np.log(K2 * nu + 1) + K3 * nu)
     return mu  # eV
+
+def n_cubic_nm_from_ak(a0, k, T, mr_star):
+    # a0 and k are in units of nm and inverse nm
+    # first convert everything to SI units.
+    k_invm = k*1e9
+    a0_m = a0/1e9
+    mr_kg = mr_star * m_e
+    out_invm3 = k_invm**2 * kb_J*T * mr_kg * a0_m / (4*np.pi * hbar_Js**2)
+    return out_invm3 * 1e-27 # nm^-3
+    
 
 
 # --- methods for calculating dielectric spectrum according to Banyai and Koch --------------------
@@ -270,9 +297,35 @@ def dielectric_microscopic_from_ini(w, p, out_shape=None):
         out += L(w, *lor)
     return out  
 
-def dielectric_macroscopic():
+def dielectric_simple(w, k, G, T, a0, Eg0, rcv, me_star, mh_star, xmax, xnum, nmax):
     # TODO docstring
     """
+    This method assumes debye huckle screening in order to calculate: k --> n --> mu
     """
-    pass
+    g = g_from_ak(a0, k)
+    m_star = m_star_calc(me_star, mh_star)
+    ER = ER_exciton(a0, m_star)
+    if g.min() < 1:
+        raise Exception("currently g less than 1 is not implemented---this is a Mott transition")    
+    Eg = Eg_from_g(Eg0, ER, g, bound=True)
+    Gbar = G_to_Gbar(G, ER)
+    Tbar = T_to_Tbar(T, ER)
+    wbar = E_to_wbar(w, Eg, ER)
+    pre = dielectric_prefactor(rcv, a0, ER)    
 
+    n_nm = n_cubic_nm_from_ak(a0, k, T, m_star)  
+    mu_e = mu_from_n(n_nm, me_star, T)
+    mu_h = mu_from_n(n_nm, mh_star, T)
+    mubar_e = mubar(mu_e, Eg, T)
+    mubar_h = mubar(mu_h, Eg, T)
+
+    bf = band_filling_factor(wbar, Tbar, mubar_e, mubar_h)
+    bound = bound_contribution(wbar, g, Gbar, nmax, squeeze=True)
+    continuum = continuum_contribution(wbar, g, Gbar, xmax, xnum, nmax, squeeze=True)
+    # we have to add back on the temperature dimension
+    while bf.ndim != bound.ndim:
+        new_shape = bound.shape + (1,)
+        bound = np.reshape(bound, new_shape)
+        continuum = np.reshape(continuum, new_shape)
+    out = pre * bf * (bound + continuum)
+    return out
