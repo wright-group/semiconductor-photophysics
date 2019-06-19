@@ -8,7 +8,7 @@ kb = 8.6173e-5  # ev/K
 kb_J = 1.381e-23  # J/K
 hbar_Js = 1.055e-34  # Js
 m_e = 9.1094e-31  # kg
-J_to_eV =  6.242e18
+J_to_eV = 6.242e18
 
 
 def n_cm3_to_nm3(n_cm):
@@ -52,6 +52,7 @@ def Eg_from_g(Eg0, ER, g, bound=True):
         out = Eg0 - ER / g
     return out
 
+
 def dEg_from_ak(a0, k, mstar, bound=True):
     # a0 is in units of nm
     # k is in units of inverse nm
@@ -59,9 +60,9 @@ def dEg_from_ak(a0, k, mstar, bound=True):
     # returns the change in the bandgap in eV
     g = g_from_ak(a0, k)
     a0_m = a0 * 1e-9
-    prefactor = hbar_Js**2 / (2*mstar*m_e)
-    prefactor /= a0_m**2 # now in units of J
-    prefactor *= J_to_eV    
+    prefactor = hbar_Js ** 2 / (2 * mstar * m_e)
+    prefactor /= a0_m ** 2  # now in units of J
+    prefactor *= J_to_eV
     if bound:
         out = prefactor * (-1 + (1 - 1 / g) ** 2)
     else:
@@ -74,13 +75,14 @@ def k_debye_huckel(n, epsilonr, T):
     hc = 1240.  # ev nm
     beta = 1 / (kb * T)  # 1/eV
     alpha = 1 / 137.036
-    return np.sqrt(4/2 * n * beta * alpha * hc / epsilonr)
+    return np.sqrt(4 / 2 * n * beta * alpha * hc / epsilonr)
+
 
 def k_thomas_fermi(n, epsilonr, EF):
     # n has units of 1/nm^3
     hc = 1240.  # ev nm
     alpha = 1 / 137.036
-    return np.sqrt(6/2 * n * alpha * hc / (EF * epsilonr))
+    return np.sqrt(6 / 2 * n * alpha * hc / (EF * epsilonr))
 
 
 def a0_exciton(epsilonr, m_star):
@@ -121,15 +123,15 @@ def mu_from_n(n, m_alpha_star, T):
     mu = kb * T * (np.log(nu) + K1 * np.log(K2 * nu + 1) + K3 * nu)
     return mu  # eV
 
+
 def n_cubic_nm_from_ak(a0, k, T, mr_star):
     # a0 and k are in units of nm and inverse nm
     # first convert everything to SI units.
-    k_invm = k*1e9
-    a0_m = a0/1e9
+    k_invm = k * 1e9
+    a0_m = a0 / 1e9
     mr_kg = mr_star * m_e
-    out_invm3 = k_invm**2 * kb_J*T * mr_kg * a0_m / (4*np.pi * hbar_Js**2)
-    return out_invm3 * 1e-27 # nm^-3
-    
+    out_invm3 = k_invm ** 2 * kb_J * T * mr_kg * a0_m / (4 * np.pi * hbar_Js ** 2)
+    return out_invm3 * 1e-27  # nm^-3
 
 
 # --- methods for calculating dielectric spectrum according to Banyai and Koch --------------------
@@ -154,8 +156,8 @@ def _checkndim_copy_reshape(arrs, added_dims):
     return arrs_out
 
 
-def band_filling_factor(w, T, mu_e, mu_h):
-    argument = w / T - mu_e - mu_h
+def band_filling_factor(wbar, Tbar, mubar_e, mubar_h):
+    argument = wbar / Tbar - mubar_e - mubar_h
     argument *= .5
     return np.tanh(argument)
 
@@ -168,11 +170,12 @@ def bound_contribution(w, g, G, nmax, squeeze=True):
     # helper methods
     def f1(g):
         return np.sqrt(g).astype(int)
-    #* L(w + (1 / ell - ell / g) ** 2, 0, G)
+
+    # * L(w + (1 / ell - ell / g) ** 2, 0, G)
     def f2(w, g, G, ell):
         return (
             np.pi
-            * L(w + (1 / ell - ell / g) ** 2, 0,G)
+            * L(w + (1 / ell - ell / g) ** 2, 0, G)
             * 2
             * (g - ell ** 2)
             * (2 * ell ** 2 - g)
@@ -242,7 +245,9 @@ def continuum_contribution(w, g, G, xmax, xnum, nmax, squeeze=True):
     )
     coul_enhnc = np.prod(coul_enhnc, axis=-1, keepdims=True)
     # create array to integrate
-    arr = np.sqrt(x) * coul_enhnc * L(w-x, 0, G) # different than BK, but they are working with delta functions we care about the sign
+    arr = (
+        np.sqrt(x) * coul_enhnc * L(w - x, 0, G)
+    )  # different than BK, but they are working with delta functions we care about the sign
     out = np.trapz(arr, dx=dx, axis=-2)
     if squeeze:
         out = np.squeeze(out)
@@ -257,10 +262,27 @@ def reduced_dielectric(wbar, g, Gbar, Tbar, mubar_e, mubar_h, xmax, xnum, nmax):
     bf = band_filling_factor(wbar, Tbar, mubar_e, mubar_h)
     bound = bound_contribution(wbar, g, Gbar, nmax, squeeze=True)
     continuum = continuum_contribution(wbar, g, Gbar, xmax, xnum, nmax, squeeze=True)
-    out =  bf * (bound + continuum)
+    out = bf * (bound + continuum)
     return out
 
-def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, xnum, nmax, print_g=False, return_bff=False):    
+
+def dielectric_microscopic(
+    w,
+    Eg0,
+    G,
+    a0,
+    k,
+    T,
+    rcv,
+    mu_e,
+    mu_h,
+    m_star,
+    xmax,
+    xnum,
+    nmax,
+    print_g=False,
+    return_bff=False,
+):
     # TODO docstring
     """
     """
@@ -269,7 +291,9 @@ def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, x
         print("g min and max", g.min(), g.max())
     ER = ER_exciton(a0, m_star)
     if g.min() < 1:
-        raise Exception("currently g less than 1 is not implemented---this is a Mott transition")
+        raise Exception(
+            "currently g less than 1 is not implemented---this is a Mott transition"
+        )
     Eg = Eg_from_g(Eg0, ER, g, bound=True)
     Gbar = G_to_Gbar(G, ER)
     Tbar = T_to_Tbar(T, ER)
@@ -277,25 +301,29 @@ def dielectric_microscopic(w, Eg0, G, a0, k, T, rcv, mu_e, mu_h, m_star, xmax, x
     pre = dielectric_prefactor(rcv, a0, ER)
     mubar_e = mubar(mu_e, Eg, T)
     mubar_h = mubar(mu_h, Eg, T)
-    out = pre * reduced_dielectric(wbar, g, Gbar, Tbar, mubar_e, mubar_h, xmax, xnum, nmax)
+    out = pre * reduced_dielectric(
+        wbar, g, Gbar, Tbar, mubar_e, mubar_h, xmax, xnum, nmax
+    )
     bf = band_filling_factor(wbar, Tbar, mubar_e, mubar_h)
     if return_bff:
         return out, bf
     else:
         return out
 
+
 def dielectric_microscopic_from_ini(w, p, out_shape=None):
     params = ini_parsing.read_full_sim_params(p)
-    num_params = params['num_params']
+    num_params = params["num_params"]
     if out_shape == None:
         out = np.zeros(w.shape, dtype=complex)
     else:
         out = np.zeros(out_shape, dtype=complex)
-    for BK in params['BKs']:
+    for BK in params["BKs"]:
         out += dielectric_microscopic(w, *BK, *num_params, return_bff=False)
-    for lor in params['Lors']:
+    for lor in params["Lors"]:
         out += L(w, *lor)
-    return out  
+    return out
+
 
 def dielectric_simple(w, k, G, T, a0, Eg0, rcv, me_star, mh_star, xmax, xnum, nmax):
     # TODO docstring
@@ -306,14 +334,16 @@ def dielectric_simple(w, k, G, T, a0, Eg0, rcv, me_star, mh_star, xmax, xnum, nm
     m_star = m_star_calc(me_star, mh_star)
     ER = ER_exciton(a0, m_star)
     if g.min() < 1:
-        raise Exception("currently g less than 1 is not implemented---this is a Mott transition")    
+        raise Exception(
+            "currently g less than 1 is not implemented---this is a Mott transition"
+        )
     Eg = Eg_from_g(Eg0, ER, g, bound=True)
     Gbar = G_to_Gbar(G, ER)
     Tbar = T_to_Tbar(T, ER)
     wbar = E_to_wbar(w, Eg, ER)
-    pre = dielectric_prefactor(rcv, a0, ER)    
+    pre = dielectric_prefactor(rcv, a0, ER)
 
-    n_nm = n_cubic_nm_from_ak(a0, k, T, m_star)  
+    n_nm = n_cubic_nm_from_ak(a0, k, T, m_star)
     mu_e = mu_from_n(n_nm, me_star, T)
     mu_h = mu_from_n(n_nm, mh_star, T)
     mubar_e = mubar(mu_e, Eg, T)
@@ -329,3 +359,73 @@ def dielectric_simple(w, k, G, T, a0, Eg0, rcv, me_star, mh_star, xmax, xnum, nm
         continuum = np.reshape(continuum, new_shape)
     out = pre * bf * (bound + continuum)
     return out
+
+
+def e_BK_broadcasted(w, k, G, T, params, squeeze=False):
+    """
+    w, k, G, T are all strictly 1D arrays.
+    params is an iterable of numbers with format [a0, Eg0, rcv, me_star, mh_star, xmax, xnum, nmax]
+    
+    all inputs are shaped.
+    the multidimensional dielectric function is calculated
+    Then R,T, A is calculated.
+    Expected output varies along axes as w, k, G, T
+    """
+    w_reshape = w[:, None, None, None]
+    k_reshape = k[None, :, None, None]
+    G_reshape = G[None, None, :, None]
+    T_reshape = T[None, None, None, :]
+    params_num = params[-3:]
+    params_arr = [np.array([i]) for i in params[:-3]]
+    epsilon_samp = dielectric_simple(
+        w_reshape, k_reshape, G_reshape, T_reshape, *params_arr, *params_num
+    )
+    if squeeze:
+        return np.squeeze(epsilon_samp)
+    else:
+        return epsilon_samp
+
+def bff_broadcasted(w, k, G, T, params, squeeze=False):
+    w_reshape = w[:, None, None, None]
+    k_reshape = k[None, :, None, None]
+    #G_reshape = G[None, None, :, None]
+    T_reshape = T[None, None, None, :]
+    params_num = params[-3:]
+    params_arr = [np.array([i]) for i in params[:-3]]
+    a0, Eg0, rcv, me_star, mh_star = params_arr
+    xmax, xnum, nmax = params_num
+    g = g_from_ak(a0, k_reshape)
+    m_star = m_star_calc(me_star, mh_star)
+    ER = ER_exciton(a0, m_star)
+    #if g.min() < 1:
+    #    raise Exception(
+    #        "currently g less than 1 is not implemented---this is a Mott transition"
+    #    )
+    Eg = Eg_from_g(Eg0, ER, g, bound=True)
+    print(Eg, ' Eg')
+    print(ER, ' ER')
+    #Gbar = G_to_Gbar(G_reshape, ER)
+    Tbar = T_to_Tbar(T_reshape, ER)
+    wbar = E_to_wbar(w_reshape, Eg, ER)
+    #pre = dielectric_prefactor(rcv, a0, ER)
+
+    n_nm = n_cubic_nm_from_ak(a0, k, T, m_star)
+    print(n_nm, n_nm*1e21)
+    mu_e = mu_from_n(n_nm, me_star, T)
+    mu_h = mu_from_n(n_nm, mh_star, T)
+    print(mu_e, mu_h, 'mu_e, mu_h')
+    mubar_e = mubar(mu_e, Eg, T)
+    mubar_h = mubar(mu_h, Eg, T)
+
+    #bff = band_filling_factor(wbar, Tbar, mubar_e, mubar_h)
+    
+    arg = 1/(2*kb*T_reshape) * (w_reshape - mu_e - mu_h - Eg) # are the signs of mu correct?
+    print(arg.min(), arg.max())
+    bff = np.tanh(arg)
+    
+    
+    
+    if squeeze:
+        return np.squeeze(bff)
+    else:
+        return bff    
